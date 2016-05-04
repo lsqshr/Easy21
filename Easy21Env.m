@@ -6,7 +6,7 @@ classdef Easy21Env < matlab.mixin.SetGet
         dealerCards
         playerBust
         dealerBust
-        win
+        win = -2;
 	end
 
     methods
@@ -24,6 +24,10 @@ classdef Easy21Env < matlab.mixin.SetGet
         	obj.playerSum = obj.playerSum + card;
         	obj.playerCards = [obj.playerCards; card];
         	obj.playerBust = obj.isBust(obj.playerSum);
+
+        	if obj.playerBust
+        		obj.win = -1;
+        	end
         end
 
     	function obj = playerStick(obj)
