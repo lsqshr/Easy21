@@ -28,11 +28,11 @@ function MC(p)
     	G(:) = 0;
     	E(:) = 0;
 
-		dc = get(game, 'dealerSum'); % Dealer Card
+		dc = uint8(get(game, 'dealerSum')); % Dealer Card
     	while true % One Round 
-    		ps = get(game, 'playerSum'); % Player Sum
-    		q = Q(:, int16(ps), int16(dc));
-            eps = (100 / (100 + sum(C(:, int16(ps), int16(dc))))); % occurance varying eps
+    		ps = uint8(get(game, 'playerSum')); % Player Sum
+    		q = Q(:, ps, dc);
+            eps = (100 / (100 + sum(C(:, ps, dc)))); % Occurance varying eps
 
             if ps > 10
                 disp(ps)
