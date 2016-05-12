@@ -16,7 +16,19 @@ classdef Easy21Env < matlab.mixin.SetGet
         	obj.dealerSum = obj.drawCard(true);
     		obj.playerCards = [obj.playerSum];
     		obj.dealerCards = [obj.dealerSum];
+            obj.win = -2;
 
+        end
+
+        function obj = takeAction(obj, A) % Take action by idx
+                                          % A: 1 - hit; 2 - stick
+            switch A
+                case 1
+                    obj.playerHit();
+                case 2
+                    obj.playerStick();
+                otherwise
+            end
         end
 
         function obj = playerHit(obj)

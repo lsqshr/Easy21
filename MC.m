@@ -1,7 +1,5 @@
 function MC(p)
-    if p.plot
-    	f1 = figure(1);
-    end
+	f1 = figure();
 
     if p.test
         Q = p.Q;
@@ -29,14 +27,10 @@ function MC(p)
     	E(:) = 0;
 
 		dc = uint8(get(game, 'dealerSum')); % Dealer Card
-    	while true % One Round 
+    	while get(game, 'win') == -2 % One Round 
     		ps = uint8(get(game, 'playerSum')); % Player Sum
     		q = Q(:, ps, dc);
             eps = (100 / (100 + sum(C(:, ps, dc)))); % Occurance varying eps
-
-            if ps > 10
-                disp(ps)
-            end
 
             if rand() < eps
                 A = randi(2);
@@ -44,55 +38,35 @@ function MC(p)
     	    	[~, A] = max(q, [], 1);
             end
 
-	    	game = takeAction(game, A);
-	    	r = get(game, 'win');
+	    	game.takeAction(A);
+	    	% r = get(game, 'win');
 
             if ~p.test
     	    	E(A, ps, dc) = 1;
     	    	C(A, ps, dc) = C(A, ps, dc) + 1; % Increment the total S,A count
             end
 
-	    	if r ~= -2 % The game on-going
-                if ~p.test % Skip the Q update when test
-                    G(E) = r;
-                    R = R + G;
-                    idx2update = C ~= 0;
-    		    	Q(idx2update) = R(idx2update) ./ C(idx2update);
-                end
-
-		    	winctr = winctr + double(r > 0);
-		    	winrate(i) = winctr / i;
-	    		break;
-	    	end
 	    end
+
+        r = get(game, 'win');
+        
+        if ~p.test % Skip the Q update when test
+            G(E) = r;
+            R = R + G;
+            idx2update = C ~= 0; % Avoid NaN
+            Q(idx2update) = R(idx2update) ./ C(idx2update);
+        end
+
+        winctr = winctr + double(r > 0);
+        winrate(i) = winctr / i;
 
         if rem(i, p.showevery) == 0
             fprintf('Episode:%d\t \tWinRate: %f\n', i, winctr / i);
-
-            if p.plot
-                clf(f1);
-                subplot(2, 1, 1);
-                maxQ = squeeze(max(Q, [], 1));
-                surf(maxQ);
-
-                subplot(2, 1, 2);
-                plot(winrate(1:i));
-                drawnow;
-            end
+            show(f1, Q, winrate(1:i));
         end
 
         if rem(i, p.snapshotevery) == 0
             save(sprintf('Q-Episode-%d.mat', i), 'Q', 'p', 'winrate', 'i');
         end
     end
-end
-
-function game = takeAction(game, A)
-	switch A
-		case 1
-			game.playerHit();
-		case 2
-			game.playerStick();
-		otherwise
-	end
 end
