@@ -6,6 +6,9 @@ function show(f1, Q, winrate)
     surf(maxQ);
 
     subplot(2, 1, 2);
+    hold on
     plot(winrate);
+    plot([1, numel(winrate)], [0.5, 0.5]);
+    hold off
     drawnow;
 end

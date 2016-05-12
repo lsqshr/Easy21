@@ -4,7 +4,7 @@ function [winrate, Q] = SARSA(p)
 	                      % The 22th player state is terminal
 
 	% Count the winned rounds 
-    winctr = 0;	
+    winctr = zeros(5e7, 1);	
     winrate = zeros(5e7, 1);
     i = 0;
 
@@ -30,7 +30,7 @@ function [winrate, Q] = SARSA(p)
 	    	[~, A] = max(q, [], 1);
         end
 
-        eDelta = [];
+        % eDelta = [];
 
     	while get(game, 'win') == -2 % One episode 
             eps = (100 / (100 + sum(C(:, ps, dc)))); % Occurance varying eps
@@ -56,11 +56,13 @@ function [winrate, Q] = SARSA(p)
             end
 
             delta = r + p.gamma * Q(A_, ps_, dc) - Q(A, ps, dc);
-            eDelta = [eDelta, delta];
-            alpha = 1 / C(A, ps, dc);
-            E(A, ps, dc) = (1 - alpha) * E(A, ps, dc) + 1;
+            % eDelta = [eDelta, delta];
+            alpha = 1 / C(A, ps, dc); % C is at least 1 here
 
-            % idx2update = E ~= 0;
+            E(A, ps, dc) = E(A, ps, dc) + 1; % Accumulating Trace 
+            % E(A, ps, dc) = (1 - alpha) * E(A, ps, dc) + 1; % Dutch Trace
+            % E(A, ps, dc) = 1; % Replacing Trace 
+
 	    	Q = Q + alpha * delta * E;
 	    	E = p.gamma * p.lambda * E;
 
@@ -68,14 +70,16 @@ function [winrate, Q] = SARSA(p)
 	    	A = A_;
 	    end
 
-	    eDelta = eDelta .^ 2;
-	    eDelta = sum(eDelta(:));
-	    eDelta = eDelta ^ 0.5;
+		winctr(i) = double(r > 0);
 
-		winctr = winctr + double(r > 0);
-		winrate(i) = winctr / i;
+		if i <= 10000
+			winrate(i) = 0;
+		else
+			winrate(i) = sum(winctr(i - 10000 : i)) / 10000;
+		end
+
 		if rem(i, p.showevery) == 0
-			fprintf('Episode:%d\t \tWinRate: %f\n', i, winctr / i);
+			fprintf('Episode:%d\t \tWinRate: %f\n', i, winrate(i));
 			show(f1, Q, winrate(1:i));
 		end
 	end
